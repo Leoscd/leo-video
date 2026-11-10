@@ -1,0 +1,135 @@
+{
+  "version": 2,
+  "source": "D:\\Soy Leo - Instagram\\reels\\2026\\octubre\\para mejorar 1\\no trabaja por vos\\no trabaja por vos-1.mp4",
+  "fingerprint": {
+    "size": 4784612,
+    "mtimeMs": 1791935177671.257
+  },
+  "format": "original",
+  "clips": [
+    {
+      "start": 0,
+      "end": 3.8
+    }
+  ],
+  "width": 1080,
+  "height": 1920,
+  "fit": "contain",
+  "panX": 0.5,
+  "panY": 0.5,
+  "fps": 30,
+  "captionStyle": "karaoke",
+  "captionSize": 0.055,
+  "captionY": 0.81,
+  "matteThreshold": 0.45,
+  "matteFeather": 0.8,
+  "captions": [
+    {
+      "start": 0.15,
+      "end": 0.33,
+      "text": "idea"
+    },
+    {
+      "start": 0.33,
+      "end": 0.44,
+      "text": "de"
+    },
+    {
+      "start": 0.44,
+      "end": 0.66,
+      "text": "este"
+    },
+    {
+      "start": 0.66,
+      "end": 1,
+      "text": "taller"
+    },
+    {
+      "start": 1,
+      "end": 1.09,
+      "text": "es"
+    },
+    {
+      "start": 1.1,
+      "end": 1.23,
+      "text": "que"
+    },
+    {
+      "start": 1.25,
+      "end": 1.69,
+      "text": "entiendas"
+    },
+    {
+      "start": 1.75,
+      "end": 1.82,
+      "text": "que"
+    },
+    {
+      "start": 1.82,
+      "end": 1.89,
+      "text": "la"
+    },
+    {
+      "start": 1.89,
+      "end": 2.32,
+      "text": "inteligencia"
+    },
+    {
+      "start": 2.32,
+      "end": 2.72,
+      "text": "artificial"
+    },
+    {
+      "start": 2.72,
+      "end": 2.84,
+      "text": "no"
+    },
+    {
+      "start": 2.84,
+      "end": 3.24,
+      "text": "trabaja"
+    },
+    {
+      "start": 3.24,
+      "end": 3.44,
+      "text": "por"
+    },
+    {
+      "start": 3.44,
+      "end": 3.65,
+      "text": "vos."
+    }
+  ],
+  "effects": [
+    {
+      "start": 2.7,
+      "end": 3.78,
+      "id": "real-behind",
+      "type": "text",
+      "text": "NO TRABAJA",
+      "layer": "behind",
+      "animation": "fade",
+      "x": 0.5,
+      "y": 0.22,
+      "size": 0.125,
+      "color": "#E9B96B",
+      "zoom": 1.2,
+      "tilt": 0
+    },
+    {
+      "start": 0.3,
+      "end": 3.6999999999999997,
+      "id": "real-zoom",
+      "type": "zoom",
+      "text": "",
+      "layer": "front",
+      "animation": "fade",
+      "x": 0.49,
+      "y": 0.4,
+      "size": 0.09,
+      "color": "#FFFFFF",
+      "zoom": 1.06,
+      "tilt": 0.015
+    }
+  ]
+}

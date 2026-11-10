@@ -1,0 +1,89 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Leo Video — Editor local</title><link rel="stylesheet" href="/style.css"><link rel="stylesheet" href="/creative.css">
+</head>
+<body>
+  <header class="topbar">
+    <div class="brand"><span class="brand-mark">L</span><strong>leo<span>video</span></strong><small>EDITOR LOCAL / 0.2.1</small></div>
+    <nav><button id="restore">Recuperar sesión</button><button id="open">Abrir proyecto</button><button id="save" data-edit>Guardar</button><button id="import" class="secondary">Importar video</button><button id="export" class="primary" data-edit>Exportar MP4 <span>↗</span></button></nav>
+  </header>
+  <main>
+    <aside class="library">
+      <div class="eyebrow">01 / MATERIAL</div><h2>Tu video.<br>Tu ritmo.</h2>
+      <div id="media-card" class="media-card empty"><div class="file-symbol">▱</div><strong id="media-name">Sin material todavía</strong><p id="media-info">Importá una grabación del teléfono para empezar.</p></div>
+      <div class="section-label">FORMATO DE SALIDA</div>
+      <label class="field">Lienzo<select id="format" data-edit><option value="original">Original · conservar tamaño</option><option value="vertical">9:16 · 1080 × 1920</option><option value="horizontal">16:9 · 1920 × 1080</option><option value="square">1:1 · 1080 × 1080</option><option value="portrait">4:5 · 1080 × 1350</option><option value="custom">Personalizado</option></select></label>
+      <div id="custom-size" class="trim-fields" hidden><label class="field">Ancho<input id="output-width" type="number" min="128" max="7680" step="2" value="1080" data-edit></label><label class="field">Alto<input id="output-height" type="number" min="128" max="7680" step="2" value="1920" data-edit></label></div>
+      <label class="field">Encuadre<select id="fit" data-edit><option value="contain">Ajustar · conservar imagen</option><option value="cover">Rellenar · recortar bordes</option></select></label>
+      <label class="field">Centro horizontal<input id="pan-x" type="range" min="0" max="1" step="0.01" value="0.5" data-edit></label>
+      <label class="field">Centro vertical<input id="pan-y" type="range" min="0" max="1" step="0.01" value="0.5" data-edit></label>
+      <label class="field">Cuadros por segundo<select id="fps" data-edit><option>24</option><option>25</option><option selected>30</option><option>50</option><option>60</option></select></label>
+      <p class="hint">HDR se convierte a SDR. Usá «Ver resultado» para revisar color, encuadre y efectos antes de exportar.</p>
+      <div class="library-bottom"><span class="local-dot"></span> Archivos en tu equipo<p>El original se conserva intacto.</p><button id="quit" class="text-button">Cerrar editor y detener motor</button></div>
+    </aside>
+    <section class="workspace">
+      <div class="workspace-heading"><div><div class="eyebrow">02 / MONTAJE · SIN EFECTOS</div><h1 id="project-title">Un buen corte cambia todo.</h1></div><button id="final-preview" class="secondary" data-edit>Ver resultado con efectos</button></div>
+      <div class="stage" id="stage">
+        <div id="empty-state"><div class="empty-frame"><span>REC</span><div class="crosshair">+</div><span>LISTO PARA CREAR</span></div><h2>De la grabación al montaje.</h2><p>Videos verticales u horizontales, en 1080p o 4K SDR.</p><button id="import-empty" class="primary">Elegir un video</button><button id="demo" class="text-button">Probar con un video de ejemplo</button></div>
+        <div id="video-frame" hidden><video id="video" preload="auto" playsinline></video></div>
+      </div>
+      <div class="transport"><span id="play-time" class="time">00:00.00</span><div><button id="back" data-edit title="Volver al inicio">|◀</button><button id="play" data-edit class="play" title="Reproducir / pausa (Espacio)">Reproducir</button></div><span id="total-time" class="time muted">/ 00:00.00</span></div>
+      <section class="timeline-area">
+        <div class="timeline-toolbar"><strong>Línea de tiempo <span id="clip-count">0 clips</span></strong><div><button id="undo" data-edit title="Deshacer (Ctrl+Z)">Deshacer</button><button id="split" data-edit title="Dividir en el cursor (S)">Dividir</button><button id="remove" data-edit>Eliminar clip</button></div></div>
+        <label class="scrub-label">Posición en el montaje<input id="scrub" type="range" min="0" max="1" step="0.01" value="0" data-edit></label>
+        <div id="ruler" class="ruler"><span>00:00</span><span>—</span></div>
+        <div class="tracks"><div class="track-label">VIDEO<br><span>01</span></div><div id="clips" class="clip-track"><p>Los clips aparecerán acá.</p></div></div>
+        <div class="timeline-footer"><span>Espacio: reproducir · S: dividir · Ctrl+Z: deshacer</span><span id="duration-saved">Sin cortes</span></div>
+      </section>
+    </section>
+    <aside class="inspector">
+      <div class="eyebrow">03 / AJUSTES</div><h2>Menos pausa.<br>Más intención.</h2>
+      <div class="tabs"><button data-tab="cuts" class="active">Cortes</button><button data-tab="captions">Subtítulos</button><button data-tab="effects">Efectos</button></div>
+      <div id="tab-cuts">
+      <section><div class="panel-heading"><h3>Silencios</h3><span class="tag">AUDIO</span></div><p class="hint">Detectá las pausas, revisalas y aplicá los cortes. Siempre podés deshacer.</p>
+      <label class="field">Umbral de audio <span id="threshold-value">−35 dB</span><input id="threshold" type="range" min="-60" max="-15" value="-35" data-edit></label>
+      <label class="field">Pausa mínima<select id="minimum" data-edit><option value="0.3">0,3 segundos</option><option value="0.5" selected>0,5 segundos</option><option value="0.8">0,8 segundos</option><option value="1">1 segundo</option></select></label>
+      <button id="detect" class="wide secondary" data-edit>Detectar silencios</button><div id="silences" class="silence-list"></div><button id="apply-silences" class="wide primary" hidden>Aplicar pausas seleccionadas</button><p class="hint">Conservamos 0,12 s de margen a cada lado del corte.</p></section>
+      <section><h3>Clip seleccionado</h3><div class="trim-fields"><label class="field">Desde (s)<input id="trim-start" type="number" min="0" step="0.01" data-edit></label><label class="field">Hasta (s)<input id="trim-end" type="number" min="0" step="0.01" data-edit></label></div><button id="trim" class="wide" data-edit>Ajustar recorte</button><div class="reorder"><button id="earlier" data-edit>← Mover antes</button><button id="later" data-edit>Mover después →</button></div></section>
+      </div>
+      <div id="tab-captions" hidden><section>
+        <h3>Subtítulos automáticos</h3><p class="hint">Transcripción local en español. Revisá palabras y tiempos antes de publicar.</p>
+        <button id="transcribe" class="wide primary" data-edit>Generar subtítulos</button>
+        <label class="field">Presentación<select id="caption-style" data-edit><option value="phrase">Por frases</option><option value="word">Por palabra</option><option value="karaoke">Resaltar palabra activa</option><option value="off">Ocultos</option></select></label>
+        <label class="field">Tamaño<input id="caption-size" type="range" min="0.02" max="0.12" step="0.005" value="0.045" data-edit></label>
+        <label class="field">Altura en pantalla<input id="caption-y" type="range" min="0.1" max="0.92" step="0.01" value="0.84" data-edit></label>
+        <div class="reorder"><button id="add-caption" data-edit>Agregar palabra</button><button id="srt" data-edit>Exportar SRT</button></div>
+        <label class="field">Importar SRT<input id="import-srt" type="file" accept=".srt" data-edit></label>
+        <p class="hint">Los tiempos del editor son los del video original. Los cortes se aplican al exportar.</p>
+        <div id="caption-count" class="hint">Sin subtítulos</div><div id="caption-editor"></div>
+        <div class="reorder"><button id="caption-prev" data-edit>Anterior</button><button id="caption-next" data-edit>Siguiente</button></div>
+      </section></div>
+      <div id="tab-effects" hidden><section>
+        <h3>Secciones y capas</h3><p class="hint">Elegí inicio y fin del original. El efecto sigue a ese tramo aunque cambies el montaje.</p>
+        <label class="field">Efecto guardado<select id="effect-select" data-edit><option value="">Nuevo efecto</option></select></label>
+        <label class="field">Tipo<select id="effect-type" data-edit><option value="text">Texto animado</option><option value="zoom">Zoom con perspectiva</option></select></label>
+        <div class="trim-fields"><label class="field">Desde (s)<input id="effect-start" type="number" min="0" step="0.01" value="0" data-edit></label><label class="field">Hasta (s)<input id="effect-end" type="number" min="0" step="0.01" value="1" data-edit></label></div>
+        <div class="reorder"><button id="effect-in" data-edit>Inicio en cursor</button><button id="effect-out" data-edit>Fin en cursor</button></div><button id="effect-clip" class="wide" data-edit>Usar el clip seleccionado</button>
+        <div id="text-options"><label class="field">Texto<textarea id="effect-text" maxlength="300" rows="3" data-edit></textarea></label>
+        <label class="field">Capa<select id="effect-layer" data-edit><option value="front">Delante de mí</option><option value="behind">Detrás de mí · máscara automática</option></select></label>
+        <label class="field">Animación<select id="effect-animation" data-edit><option value="fade">Fundido</option><option value="pop">Pop</option><option value="slide">Entrada desde abajo</option><option value="none">Sin animación</option></select></label>
+        <label class="field">Color<input id="effect-color" type="color" value="#ffffff" data-edit></label>
+        <label class="field">Tamaño<input id="effect-size" type="range" min="0.015" max="0.3" step="0.005" value="0.09" data-edit></label></div>
+        <div id="zoom-options" hidden><label class="field">Zoom máximo<input id="effect-zoom" type="number" min="1" max="2.5" step="0.05" value="1.2" data-edit></label><label class="field">Perspectiva<input id="effect-tilt" type="range" min="-0.12" max="0.12" step="0.01" value="0" data-edit></label><p class="hint">Acercamiento y regreso suaves. La perspectiva transforma el plano del video.</p></div>
+        <label class="field">Posición / foco horizontal<input id="effect-x" type="range" min="0.05" max="0.95" step="0.01" value="0.5" data-edit></label>
+        <label class="field">Posición / foco vertical<input id="effect-y" type="range" min="0.05" max="0.95" step="0.01" value="0.4" data-edit></label>
+        <div class="reorder"><button id="effect-save" class="primary" data-edit>Guardar efecto</button><button id="effect-delete" data-edit>Eliminar</button></div>
+        <h3 class="mask-heading">Bordes de tu figura</h3><label class="field">Umbral de máscara<input id="matte-threshold" type="range" min="0.1" max="0.9" step="0.05" value="0.45" data-edit></label><label class="field">Suavizado<input id="matte-feather" type="range" min="0" max="4" step="0.2" value="1.2" data-edit></label>
+        <p class="hint">La máscara se calcula al generar el resultado. Revisá pelo y manos. Para una sola persona de frente a cámara.</p>
+        <div id="effect-count" class="hint">Sin efectos</div>
+      </section></div>
+    </aside>
+  </main>
+  <footer class="statusbar"><span id="status" role="status" aria-live="polite">Listo para importar. Procesamiento local.</span><span id="export-info">MP4 · H.264 · AAC</span></footer>
+  <dialog id="final-dialog"><div class="final-heading"><h2>Resultado con efectos</h2><button id="close-final">Volver a editar</button></div><video id="final-video" controls playsinline></video><p class="hint">Vista calculada a 720 píxeles de lado mayor. La exportación usa la resolución elegida. Volvé a generarla después de editar.</p></dialog>
+  <div id="job-overlay" class="overlay" hidden><div class="job-card"><div class="eyebrow">MOTOR DE VIDEO</div><h2 id="job-message">Preparando…</h2><progress id="job-progress" max="1" value="0"></progress><div class="job-bottom"><span id="job-percent">0 %</span><button id="cancel">Cancelar operación</button></div></div></div>
+  <script src="/app.js"></script><script src="/creative.js"></script>
+</body>
+</html>

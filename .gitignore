@@ -1,0 +1,17 @@
+node_modules/
+.cache/
+test-output/
+.build/
+.install-test/
+*.log
+.env
+
+# Ejecutables: se recompilan con scripts/build-launcher.ps1 y build-installer.ps1
+*.exe
+
+# Validaciones con grabaciones personales: solo se versionan los informes de texto
+validaciones/**/*.mp4
+validaciones/**/*.mkv
+validaciones/**/*.wav
+validaciones/**/*.png
+validaciones/**/whisper-raw.json
