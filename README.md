@@ -1,10 +1,18 @@
-# Leo Video 0.2.2
+# Leo Video 0.3.0
 
 Editor personal para Windows. Abrí **Leo Video.exe** o **Abrir editor.cmd**. Conservá el lanzador junto al resto de esta carpeta.
 
 Para instalarlo en tu equipo, ejecutá **Instalar Leo Video.exe**, elegí una carpeta y pulsá **Instalar y abrir**. Puede crear un acceso directo en el Escritorio. El paquete instala la aplicación y aprovecha los motores y modelos ya disponibles; no incluye una copia de todas las dependencias para otra computadora.
 
-La interfaz usa una ventana de Chrome/Edge. El motor escucha solamente en `127.0.0.1`. Videos, transcripción y máscaras se procesan localmente.
+La interfaz usa una ventana de Chrome/Edge. El motor escucha solamente en `127.0.0.1`. Los videos y las máscaras se procesan localmente y nunca se suben. Con una clave de OpenAI configurada, a OpenAI viajan solo el audio comprimido (transcripción) y el texto de la transcripción (edición automática).
+
+## IA con OpenAI
+
+1. Copiá `.env.example` como `.env` en esta carpeta y pegá tu clave en `OPENAI_API_KEY`. Reiniciá el editor.
+2. **Subtítulos → Generar subtítulos** transcribe con OpenAI (`whisper-1`, tiempos por palabra). Sube el audio en mono a 32 kbps, unos 0,25 MB por minuto; el límite es de unos 100 minutos por video. Si OpenAI falla o no hay conexión, se usa Whisper local. Con `LEO_TRANSCRIBE=local` nunca se sube el audio.
+3. **IA → Analizar con IA** lee la transcripción y propone tomas repetidas a cortar, palabras a resaltar en pantalla y momentos de zoom. Revisá la lista (clic en una propuesta para ver ese momento), desmarcá lo que no quieras y pulsá **Aplicar propuestas seleccionadas**. Los cortes se pueden deshacer; los textos y zooms quedan en **Efectos** para ajustarlos.
+
+Sin clave, el editor funciona igual con transcripción local y edición manual. El modelo de análisis se cambia con `OPENAI_MODEL`.
 
 ## Cómo usarlo
 
@@ -60,8 +68,9 @@ Los motores se comprobaron en este equipo. Para otras ubicaciones: variables `LE
 - `core/compositor.js`: capas, máscara, texto y zoom. Coordenadas proporcionales para reutilizar entre resoluciones.
 - `scripts/matte.py`: inferencia ONNX CPU y máscara por cuadro.
 - `core/media.js`: inspección, color/encuadre, procesamiento y verificación de salida.
+- `core/ai.js`: transcripción y análisis con OpenAI; convierte índices de palabras en tiempos del original.
 - `server.js`: operaciones cancelables, API local y diálogos de Windows.
-- `ui/app.js` y `ui/creative.js`: montaje, subtítulos, efectos y recuperación.
+- `ui/app.js`, `ui/creative.js` y `ui/ai.js`: montaje, subtítulos, efectos, propuestas de IA y recuperación.
 
 `npm test` ejecuta pruebas del motor. `tests/ui-smoke.cjs` y `tests/ui-creative.cjs` requieren Playwright y servidor iniciado. `tests/ai-smoke.cjs` ejecuta los modelos locales con las muestras de VALIDACION.md. `scripts/build-launcher.ps1` y `scripts/build-installer.ps1` recompilan los ejecutables con .NET Framework.
 

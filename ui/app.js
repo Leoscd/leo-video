@@ -113,12 +113,13 @@ async function operation(route, data = {}) {
         const r = j.result;
         if (r?.dismissed) return status('Operación cerrada sin cambios.');
         if (r?.media) {
-          media = r.media; project = r.project; selected = active = 0; undoStack = []; silences = []; dirty = false; proxyTried = false; pendingSeek = 0;
+          media = r.media; project = r.project; selected = active = 0; undoStack = []; silences = []; dirty = false; proxyTried = false; pendingSeek = 0; if(typeof showProposals==='function'){proposals=[];renderProposals();}
           video.src = r.previewUrl; silenceList(); render(); status('Video listo. La exportación usará el original.');
         }
         if (r?.proxied) { pendingSeek = position(); video.src = r.previewUrl; status('Vista previa liviana lista.'); }
         if (r?.silences) { silences = r.silences; silenceList(); status(`${silences.length} pausas detectadas. Revisá las seleccionadas antes de aplicar.`); }
-        if(r?.captions) { remember();project.captions=r.captions;render();status(`${r.captions.length} palabras o segmentos generados. Revisalos antes de exportar.`); }
+        if(r?.captions) { remember();project.captions=r.captions;render();status(r.notice?`OpenAI no respondió (${r.notice}). Se usó la transcripción local: ${r.captions.length} palabras.`:`${r.captions.length} palabras generadas con ${r.engine==='openai'?'OpenAI':'transcripción local'}. Revisalas antes de exportar.`,!!r.notice); }
+        if(r?.proposals&&typeof showProposals==='function')showProposals(r.proposals);
         if(r?.finalUrl) { $('final-video').src=r.finalUrl;$('final-dialog').showModal();status('Resultado calculado. Revisá el efecto antes de exportar.'); }
         if (r?.exported) status(`MP4 verificado: ${r.exported.path} · ${time(r.exported.duration)}`);
         return r;

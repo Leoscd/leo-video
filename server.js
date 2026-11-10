@@ -8,6 +8,8 @@ const { createReadStream } = require('node:fs');
 const { probe, makePreview, detectSilences, exportVideo, run } = require('./core/media');
 const { validateProject, removeSilences } = require('./core/project');
 const { transcribe, srt } = require('./core/captions');
+const ai = require('./core/ai');
+ai.loadEnv(__dirname);
 const ROOT = __dirname, CACHE = path.join(ROOT, '.cache');
 const VERSION = require('./package.json').version;
 const MAX_PROXIES = 6;
@@ -15,7 +17,7 @@ const token = crypto.randomBytes(32).toString('hex');
 let media = null, preview = null, finalPreview = null, project = null, job = null, origin;
 function cancelJob() {
   if(job?.state!=='running')return;
-  job.cancelled=true;
+  job.cancelled=true; job.abort?.();
   if(job.child?.pid) {
     if(process.platform==='win32') spawn('taskkill',['/PID',String(job.child.pid),'/T','/F'],{windowsHide:true,stdio:'ignore',shell:false});
     else job.child.kill();
@@ -83,6 +85,7 @@ async function handle(req, res) {
     if (req.headers.authorization !== `Bearer ${token}` || (req.headers.origin && req.headers.origin !== origin)) return json(res, { error: 'Acceso no autorizado.' }, 403);
     if (req.method === 'GET' && url.pathname === '/api/job') return json(res, publicJob());
     if (req.method === 'GET' && url.pathname === '/api/health') return json(res, { ok: true, version: VERSION });
+    if (req.method === 'GET' && url.pathname === '/api/ai-status') { const c = ai.config(); return json(res, { configured: !!c.key, model: c.model, transcribe: c.key ? c.transcribe : 'local' }); }
     if (req.method !== 'POST') return json(res, { error: 'Método no permitido.' }, 405);
     const body = await readBody(req);
     if (url.pathname === '/api/cancel') { cancelJob(); return json(res, { ok: true }); }
@@ -121,7 +124,26 @@ async function handle(req, res) {
     }
     if (url.pathname === '/api/transcribe') {
       validateProject(body.project,media);
-      return json(res,startJob(async j=>({captions:await transcribe(media,CACHE,j,run)})));
+      return json(res,startJob(async j=>{
+        const c=ai.config();
+        if(!c.key||c.transcribe==='local')return {captions:await transcribe(media,CACHE,j,run),engine:'local'};
+        try {return {captions:await ai.transcribeOpenAI(media,CACHE,j,run,c),engine:'openai'};}
+        catch(e) {
+          // Sin conexión o con un error de OpenAI, el trabajo sigue con Whisper local.
+          if(j.cancelled)throw e;
+          j.progress=0;const captions=await transcribe(media,CACHE,j,run);
+          return {captions,engine:'local',notice:e.message};
+        }
+      }));
+    }
+    if (url.pathname === '/api/analyze') {
+      const p=validateProject(body.project,media);
+      return json(res,startJob(async j=>({proposals:await ai.analyze(p.captions,media.duration,j)})));
+    }
+    if (url.pathname === '/api/apply-cuts') {
+      const next = validateProject(body.project, media);
+      if (!Array.isArray(body.cuts) || body.cuts.length > 2000 || !body.cuts.every(s => Number.isFinite(s.start) && Number.isFinite(s.end) && s.start >= 0 && s.end <= media.duration + 0.1 && s.end > s.start)) throw new Error('Cortes inválidos.');
+      return json(res, { clips: removeSilences(next.clips, body.cuts, media.duration, 0) });
     }
     if (url.pathname === '/api/srt') {
       const p=validateProject(body.project,media), dest=await dialog('srt');
@@ -179,7 +201,7 @@ async function handle(req, res) {
     res.writeHead(status, headers);
     const stream = createReadStream(servingFile, { start, end }); stream.on('error', () => res.destroy()); res.on('close', () => stream.destroy()); stream.pipe(res); return;
   }
-  const files = { '/': ['index.html', 'text/html'], '/app.js': ['app.js', 'text/javascript'], '/style.css': ['style.css', 'text/css'], '/creative.js':['creative.js','text/javascript'], '/creative.css':['creative.css','text/css'] };
+  const files = { '/': ['index.html', 'text/html'], '/app.js': ['app.js', 'text/javascript'], '/style.css': ['style.css', 'text/css'], '/creative.js':['creative.js','text/javascript'], '/ai.js':['ai.js','text/javascript'], '/creative.css':['creative.css','text/css'] };
   const item = files[url.pathname];
   if (!item) { res.writeHead(404); return res.end(); }
   res.setHeader('Content-Security-Policy', "default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; media-src 'self'; img-src 'self' data:; connect-src 'self'; frame-ancestors 'none'; base-uri 'none'; form-action 'none'");

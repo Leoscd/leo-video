@@ -8,7 +8,7 @@ Add-Type -AssemblyName System.IO.Compression
 Add-Type -AssemblyName System.IO.Compression.FileSystem
 $zip = [System.IO.Compression.ZipFile]::Open($payload,[System.IO.Compression.ZipArchiveMode]::Create)
 try {
-    $names = @('server.js','package.json','abrir.ps1','Abrir editor.cmd','Leo Video.exe','README.md','PROYECTO.md','VALIDACION.md','core\project.js','core\media.js','core\captions.js','core\compositor.js','scripts\matte.py','ui\index.html','ui\style.css','ui\creative.css','ui\app.js','ui\creative.js')
+    $names = @('server.js','package.json','abrir.ps1','Abrir editor.cmd','Leo Video.exe','README.md','PROYECTO.md','VALIDACION.md','core\project.js','core\media.js','core\captions.js','core\compositor.js','core\ai.js','.env.example','scripts\matte.py','ui\index.html','ui\style.css','ui\creative.css','ui\app.js','ui\creative.js','ui\ai.js')
     foreach($name in $names) {
         [System.IO.Compression.ZipFileExtensions]::CreateEntryFromFile($zip,(Join-Path $editorRoot $name),$name.Replace('\','/'),[System.IO.Compression.CompressionLevel]::Optimal) | Out-Null
     }

@@ -6,7 +6,7 @@
 </head>
 <body>
   <header class="topbar">
-    <div class="brand"><span class="brand-mark">L</span><strong>leo<span>video</span></strong><small>EDITOR LOCAL / 0.2.1</small></div>
+    <div class="brand"><span class="brand-mark">L</span><strong>leo<span>video</span></strong><small>EDITOR LOCAL / 0.3.0</small></div>
     <nav><button id="restore">Recuperar sesión</button><button id="open">Abrir proyecto</button><button id="save" data-edit>Guardar</button><button id="import" class="secondary">Importar video</button><button id="export" class="primary" data-edit>Exportar MP4 <span>↗</span></button></nav>
   </header>
   <main>
@@ -40,7 +40,7 @@
     </section>
     <aside class="inspector">
       <div class="eyebrow">03 / AJUSTES</div><h2>Menos pausa.<br>Más intención.</h2>
-      <div class="tabs"><button data-tab="cuts" class="active">Cortes</button><button data-tab="captions">Subtítulos</button><button data-tab="effects">Efectos</button></div>
+      <div class="tabs"><button data-tab="cuts" class="active">Cortes</button><button data-tab="captions">Subtítulos</button><button data-tab="effects">Efectos</button><button data-tab="ai">IA</button></div>
       <div id="tab-cuts">
       <section><div class="panel-heading"><h3>Silencios</h3><span class="tag">AUDIO</span></div><p class="hint">Detectá las pausas, revisalas y aplicá los cortes. Siempre podés deshacer.</p>
       <label class="field">Umbral de audio <span id="threshold-value">−35 dB</span><input id="threshold" type="range" min="-60" max="-15" value="-35" data-edit></label>
@@ -49,7 +49,7 @@
       <section><h3>Clip seleccionado</h3><div class="trim-fields"><label class="field">Desde (s)<input id="trim-start" type="number" min="0" step="0.01" data-edit></label><label class="field">Hasta (s)<input id="trim-end" type="number" min="0" step="0.01" data-edit></label></div><button id="trim" class="wide" data-edit>Ajustar recorte</button><div class="reorder"><button id="earlier" data-edit>← Mover antes</button><button id="later" data-edit>Mover después →</button></div></section>
       </div>
       <div id="tab-captions" hidden><section>
-        <h3>Subtítulos automáticos</h3><p class="hint">Transcripción local en español. Revisá palabras y tiempos antes de publicar.</p>
+        <h3>Subtítulos automáticos</h3><p class="hint">Transcripción en español con OpenAI (sube solo el audio) o local si no hay clave. Revisá palabras y tiempos antes de publicar.</p>
         <button id="transcribe" class="wide primary" data-edit>Generar subtítulos</button>
         <label class="field">Presentación<select id="caption-style" data-edit><option value="phrase">Por frases</option><option value="word">Por palabra</option><option value="karaoke">Resaltar palabra activa</option><option value="off">Ocultos</option></select></label>
         <label class="field">Tamaño<input id="caption-size" type="range" min="0.02" max="0.12" step="0.005" value="0.045" data-edit></label>
@@ -79,11 +79,20 @@
         <p class="hint">La máscara se calcula al generar el resultado. Revisá pelo y manos. Para una sola persona de frente a cámara.</p>
         <div id="effect-count" class="hint">Sin efectos</div>
       </section></div>
+      <div id="tab-ai" hidden><section>
+        <div class="panel-heading"><h3>Edición automática</h3><span class="tag">IA</span></div>
+        <p class="hint">La IA lee la transcripción y propone tomas repetidas a cortar, palabras a resaltar y momentos de zoom. Nada se aplica hasta que lo aprobás. A OpenAI solo viaja el texto.</p>
+        <p id="ai-status" class="hint"></p>
+        <button id="ai-analyze" class="wide primary" data-edit>Analizar con IA</button>
+        <div id="ai-proposals"></div>
+        <button id="ai-apply" class="wide primary" hidden>Aplicar propuestas seleccionadas</button>
+        <p class="hint">Clic en una propuesta para ver ese momento. Los textos y zooms quedan en «Efectos» para ajustarlos.</p>
+      </section></div>
     </aside>
   </main>
   <footer class="statusbar"><span id="status" role="status" aria-live="polite">Listo para importar. Procesamiento local.</span><span id="export-info">MP4 · H.264 · AAC</span></footer>
   <dialog id="final-dialog"><div class="final-heading"><h2>Resultado con efectos</h2><button id="close-final">Volver a editar</button></div><video id="final-video" controls playsinline></video><p class="hint">Vista calculada a 720 píxeles de lado mayor. La exportación usa la resolución elegida. Volvé a generarla después de editar.</p></dialog>
   <div id="job-overlay" class="overlay" hidden><div class="job-card"><div class="eyebrow">MOTOR DE VIDEO</div><h2 id="job-message">Preparando…</h2><progress id="job-progress" max="1" value="0"></progress><div class="job-bottom"><span id="job-percent">0 %</span><button id="cancel">Cancelar operación</button></div></div></div>
-  <script src="/app.js"></script><script src="/creative.js"></script>
+  <script src="/app.js"></script><script src="/creative.js"></script><script src="/ai.js"></script>
 </body>
 </html>

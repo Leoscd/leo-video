@@ -39,7 +39,7 @@ function renderCaptions() {
 }
 for(const button of document.querySelectorAll('[data-tab]'))button.addEventListener('click',()=>{
   for(const other of document.querySelectorAll('[data-tab]'))other.classList.toggle('active',other===button);
-  for(const name of ['cuts','captions','effects'])$('tab-'+name).hidden=name!==button.dataset.tab;
+  for(const name of ['cuts','captions','effects','ai'])$('tab-'+name).hidden=name!==button.dataset.tab;
 });
 for(const [id,key] of [['output-width','width'],['output-height','height'],['fit','fit'],['pan-x','panX'],['pan-y','panY'],['fps','fps'],['caption-style','captionStyle'],['caption-size','captionSize'],['caption-y','captionY'],['matte-threshold','matteThreshold'],['matte-feather','matteFeather']]) $(id).addEventListener('change',()=>{
   let value=['fit','captionStyle'].includes(key)?$(id).value:Number($(id).value);

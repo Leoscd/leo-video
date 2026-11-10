@@ -48,3 +48,7 @@ Incluye Leo Video.exe como lanzador e Instalar Leo Video.exe para instalar la ap
 Actualización 0.2.1: se validó una grabación real vertical del usuario (3,808 s, Full HD SDR) con subtítulos, movimiento y texto detrás de su cabeza; se corrigió la pérdida de una palabra del reconocimiento y se comprobaron 16 pruebas del motor más la regresión SRT en interfaz instalada. El original conserva su SHA-256. Faltan videos largos y muestras reales horizontales/HDR. Ver VALIDACION.md y validaciones/no-trabaja-por-vos-final/INFORME.md.
 
 Actualización 0.2.2: la importación ya no recodifica los videos que el navegador reproduce directamente (H.264 SDR de 8 bits en MP4/MOV). Con una grabación real de teléfono (1080 × 1920, 2:48 min, 400 MB) pasó de unos 30 s a 0,14 s. El resto usa una vista liviana guardada por original, que no se recalcula al reabrir. Si el equipo no puede reproducir un original, la interfaz genera la vista liviana automáticamente.
+
+Actualización 0.3.0: capa de IA con la API de OpenAI. Transcripción con tiempos por palabra subiendo solo el audio comprimido (respaldo en Whisper local) y pestaña «IA» que propone tomas repetidas a cortar, textos a resaltar y zooms de énfasis para revisar antes de aplicar. Probado con un servidor de OpenAI simulado (pruebas del motor e interfaz); falta la validación con clave real y una grabación con repeticiones.
+
+Pendiente: zoom y subtítulos en vivo en el reproductor, zoom sostenido, y motion graphics con plantillas.
