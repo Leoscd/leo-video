@@ -22,7 +22,7 @@ internal static class Installer {
                 using (Stream input = entry.Open()) using (FileStream output = new FileStream(dest,FileMode.Create,FileAccess.Write)) input.CopyTo(output);
             }
         }
-        File.WriteAllText(Path.Combine(root,".leo-installed"),"Leo Video 0.2.1",Encoding.UTF8);
+        File.WriteAllText(Path.Combine(root,".leo-installed"),"Leo Video 0.2.2",Encoding.UTF8);
     }
     private static void Shortcut(string root) {
         Type shellType = Type.GetTypeFromProgID("WScript.Shell");
@@ -36,7 +36,7 @@ internal static class Installer {
         try {
             if (args.Length == 2 && args[0] == "--install") { Install(args[1]); return 0; }
             Application.EnableVisualStyles();
-            Form form = new Form { Text="Instalar Leo Video 0.2.1", Width=620,Height=345,StartPosition=FormStartPosition.CenterScreen,FormBorderStyle=FormBorderStyle.FixedDialog,MaximizeBox=false };
+            Form form = new Form { Text="Instalar Leo Video 0.2.2", Width=620,Height=345,StartPosition=FormStartPosition.CenterScreen,FormBorderStyle=FormBorderStyle.FixedDialog,MaximizeBox=false };
             Label title = new Label { Left=25,Top=24,Width=560,Height=27,Text="Leo Video — editor personal",Font=new System.Drawing.Font("Segoe UI",14) };
             Label info = new Label { Left=25,Top=66,Width=550,Height=64,Text="Instala la aplicación para tu usuario. Utiliza Node.js, FFmpeg, Python, Whisper y los modelos locales de este equipo. No descarga dependencias ni modifica tus videos." };
             TextBox folder = new TextBox { Left=25,Top=142,Width=465,Text=Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),"LeoVideo") };

@@ -4,7 +4,7 @@ const assert = require('node:assert/strict');
 const fs = require('node:fs/promises');
 const path = require('node:path');
 const crypto = require('node:crypto');
-const { probe, run, detectSilences, exportVideo, makePreview } = require('../core/media');
+const { probe, run, detectSilences, exportVideo, makePreview, canPlayDirect } = require('../core/media');
 const { validateClips, validateProject, removeSilences, durationOf } = require('../core/project');
 const dir = path.resolve('test-output');
 let fixture, source, hash;
@@ -14,6 +14,15 @@ before(async () => {
   fixture = path.join(dir, `original-${crypto.randomUUID()}.mp4`);
   await run('ffmpeg',['-v','error','-nostdin','-n','-f','lavfi','-i','testsrc2=size=320x180:rate=30:duration=6','-f','lavfi','-i','sine=frequency=600:sample_rate=48000:duration=6','-af',"volume=0:enable='between(t,2,3)'",'-c:v','libx264','-preset','ultrafast','-pix_fmt','yuv420p','-c:a','aac','-shortest',fixture]);
   source = await probe(fixture); hash = await sha(fixture);
+});
+test('reproduce directo H.264 SDR y pide copia liviana para el resto', () => {
+  assert.equal(source.direct, true);
+  assert.equal(canPlayDirect({ ...source, codec: 'hevc' }), false);
+  assert.equal(canPlayDirect({ ...source, hdr: true }), false);
+  assert.equal(canPlayDirect({ ...source, pixFmt: 'yuv420p10le' }), false);
+  assert.equal(canPlayDirect({ ...source, container: 'matroska,webm' }), false);
+  assert.equal(canPlayDirect({ ...source, audioCodec: 'pcm_s16le' }), false);
+  assert.equal(canPlayDirect({ ...source, audio: false, audioCodec: null }), true);
 });
 test('valida intervalos y rechaza datos corruptos del proyecto', () => {
   assert.throws(() => validateClips([{start:-1,end:2}],6));

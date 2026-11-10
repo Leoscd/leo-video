@@ -4,7 +4,7 @@ let token = location.hash.slice(1);
 if (token) sessionStorage.setItem('leo-token', token);
 token ||= sessionStorage.getItem('leo-token');
 history.replaceState(null, '', '/');
-let media = null, project = null, selected = 0, active = 0, undoStack = [], busy = false, silences = [], dirty = false;
+let media = null, project = null, selected = 0, active = 0, undoStack = [], busy = false, silences = [], dirty = false, proxyTried = false, pendingSeek = 0;
 const time = n => { n = Math.max(0, n || 0); return `${String(Math.floor(n / 60)).padStart(2, '0')}:${(n % 60).toFixed(2).padStart(5, '0')}`; };
 const total = () => project?.clips.reduce((n, c) => n + c.end - c.start, 0) || 0;
 const offsetOf = i => project.clips.slice(0, i).reduce((n, c) => n + c.end - c.start, 0);
@@ -85,8 +85,12 @@ video.addEventListener('ended', () => {
 });
 video.addEventListener('play', () => $('play').textContent = 'Pausar'); video.addEventListener('pause', () => $('play').textContent = 'Reproducir');
 video.addEventListener('timeupdate', () => { advance(); updateTime(); });
-video.addEventListener('error', () => status('No se pudo reproducir la vista previa. Volvé a importar el video.', true));
-video.addEventListener('loadedmetadata', () => { seek(0); resizeFrame(); });
+video.addEventListener('error', () => {
+  // El original se reproduce sin convertir; si este equipo no puede, se genera la copia liviana una sola vez.
+  if (media?.direct && !proxyTried && !busy) { proxyTried = true; status('Este video necesita una vista previa liviana. Generándola…'); operation('proxy', {}).catch(e => status(e.message, true)); }
+  else status('No se pudo reproducir la vista previa. Volvé a importar el video.', true);
+});
+video.addEventListener('loadedmetadata', () => { seek(pendingSeek); pendingSeek = 0; resizeFrame(); });
 new ResizeObserver(resizeFrame).observe($('stage'));
 function changed(message, target = 0) { video.pause(); render(); seek(target); status(message); }
 function silenceList() {
@@ -109,9 +113,10 @@ async function operation(route, data = {}) {
         const r = j.result;
         if (r?.dismissed) return status('Operación cerrada sin cambios.');
         if (r?.media) {
-          media = r.media; project = r.project; selected = active = 0; undoStack = []; silences = []; dirty = false;
+          media = r.media; project = r.project; selected = active = 0; undoStack = []; silences = []; dirty = false; proxyTried = false; pendingSeek = 0;
           video.src = r.previewUrl; silenceList(); render(); status('Video listo. La exportación usará el original.');
         }
+        if (r?.proxied) { pendingSeek = position(); video.src = r.previewUrl; status('Vista previa liviana lista.'); }
         if (r?.silences) { silences = r.silences; silenceList(); status(`${silences.length} pausas detectadas. Revisá las seleccionadas antes de aplicar.`); }
         if(r?.captions) { remember();project.captions=r.captions;render();status(`${r.captions.length} palabras o segmentos generados. Revisalos antes de exportar.`); }
         if(r?.finalUrl) { $('final-video').src=r.finalUrl;$('final-dialog').showModal();status('Resultado calculado. Revisá el efecto antes de exportar.'); }

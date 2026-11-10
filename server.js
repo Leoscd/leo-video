@@ -9,6 +9,8 @@ const { probe, makePreview, detectSilences, exportVideo, run } = require('./core
 const { validateProject, removeSilences } = require('./core/project');
 const { transcribe, srt } = require('./core/captions');
 const ROOT = __dirname, CACHE = path.join(ROOT, '.cache');
+const VERSION = require('./package.json').version;
+const MAX_PROXIES = 6;
 const token = crypto.randomBytes(32).toString('hex');
 let media = null, preview = null, finalPreview = null, project = null, job = null, origin;
 function cancelJob() {
@@ -44,16 +46,26 @@ function startJob(task) {
   return { id: current.id };
 }
 function publicJob() { if (!job) return null; const { child, ...data } = job; return data; }
+// Copia liviana solo para lo que el navegador no reproduce (HEVC, HDR, 10 bits…).
+// Se guarda por ruta+tamaño+fecha del original: reabrir un proyecto no la recalcula.
+async function proxyFor(info, j) {
+  const key = crypto.createHash('sha1').update(`${info.path.toLowerCase()}|${info.fingerprint.size}|${info.fingerprint.mtimeMs}`).digest('hex').slice(0, 20);
+  const dest = path.join(CACHE, `proxy-${key}.mp4`);
+  try { await fs.access(dest); const now = new Date(); await fs.utimes(dest, now, now).catch(() => {}); return dest; } catch {}
+  const part = path.join(CACHE, `proxy-${key}-${j.id}.part.mp4`);
+  try { await makePreview(info, part, j); await fs.rename(part, dest); } finally { await fs.rm(part, { force: true }); }
+  const old = [];
+  for (const name of await fs.readdir(CACHE)) if (/^proxy-[0-9a-f]{20}.mp4$/.test(name)) old.push({ file: path.join(CACHE, name), time: (await fs.stat(path.join(CACHE, name))).mtimeMs });
+  for (const item of old.sort((a, b) => b.time - a.time).slice(MAX_PROXIES)) if (item.file !== dest) await fs.rm(item.file, { force: true }).catch(() => {});
+  return dest;
+}
 async function importFile(file, j, saved) {
   const info = await probe(file, j);
   if (saved?.fingerprint && (saved.fingerprint.size !== info.fingerprint.size || Math.abs(saved.fingerprint.mtimeMs - info.fingerprint.mtimeMs) > 1)) throw new Error('El original fue modificado desde que guardaste el proyecto. Importalo como un video nuevo.');
   const next = validateProject(saved || { version: 1, format: 'original', clips: [{ start: 0, end: info.duration }] },info);
-  const dest = path.join(CACHE, `preview-${crypto.randomUUID()}.mp4`);
-  const previous = preview;
-  try { await makePreview(info, dest, j); }
-  catch(e) { await fs.rm(dest, { force: true }); throw e; }
-  media = info; preview = dest; project = next;
-  if (previous) await fs.rm(previous, { force: true }).catch(() => {});
+  // `preview` puede ser el original: nunca se borra desde acá.
+  const file2 = info.direct ? info.path : await proxyFor(info, j);
+  media = info; preview = file2; project = next;
   return { media: info, project: next, previewUrl: `/media/preview?t=${token}&v=${j.id}` };
 }
 async function readBody(req) {
@@ -70,7 +82,7 @@ async function handle(req, res) {
   if (url.pathname.startsWith('/api/')) {
     if (req.headers.authorization !== `Bearer ${token}` || (req.headers.origin && req.headers.origin !== origin)) return json(res, { error: 'Acceso no autorizado.' }, 403);
     if (req.method === 'GET' && url.pathname === '/api/job') return json(res, publicJob());
-    if (req.method === 'GET' && url.pathname === '/api/health') return json(res, { ok: true, version: '0.2.1' });
+    if (req.method === 'GET' && url.pathname === '/api/health') return json(res, { ok: true, version: VERSION });
     if (req.method !== 'POST') return json(res, { error: 'Método no permitido.' }, 405);
     const body = await readBody(req);
     if (url.pathname === '/api/cancel') { cancelJob(); return json(res, { ok: true }); }
@@ -101,6 +113,7 @@ async function handle(req, res) {
       return importFile(saved.source,j,saved);
     }));
     if (!media) throw new Error('Primero importá un video.');
+    if (url.pathname === '/api/proxy') return json(res, startJob(async j => { preview = await proxyFor(media, j); return { proxied: true, previewUrl: `/media/preview?t=${token}&v=${j.id}` }; }));
     if (url.pathname === '/api/draft') {
       project=validateProject(body.project,media);
       const tmp=path.join(CACHE,'draft.tmp'); await fs.writeFile(tmp,JSON.stringify(project)); await fs.rename(tmp,path.join(CACHE,'draft.leovideo'));

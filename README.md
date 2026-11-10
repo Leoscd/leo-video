@@ -1,4 +1,4 @@
-# Leo Video 0.2.1
+# Leo Video 0.2.2
 
 Editor personal para Windows. Abrí **Leo Video.exe** o **Abrir editor.cmd**. Conservá el lanzador junto al resto de esta carpeta.
 
@@ -8,7 +8,7 @@ La interfaz usa una ventana de Chrome/Edge. El motor escucha solamente en `127.0
 
 ## Cómo usarlo
 
-1. **Importar video** genera una vista liviana. El original se conserva y se usa para exportar.
+1. **Importar video** abre al instante los videos H.264 SDR en MP4/MOV (lo habitual en teléfonos): se reproduce el original, sin conversión previa. Para HEVC, HDR, 10 bits u otros contenedores se genera una vista liviana una sola vez y se reutiliza al reabrir el proyecto. El original se conserva y se usa para exportar.
 2. Cortá, reordená o ajustá los clips. **Detectar silencios** permite revisar las pausas antes de aplicar cortes. Podés deshacer.
 3. En **Subtítulos**, pulsá **Generar subtítulos** y corregí palabras/tiempos. Elegí frases, palabras o resaltado de la palabra activa. También podés importar SRT y exportarlo sincronizado con el montaje.
 4. En **Efectos**, indicá inicio/fin, usá el cursor o **Usar el clip seleccionado**. Agregá texto con fundido, pop o entrada desde abajo; ajustá color, tamaño y posición. **Detrás de mí** usa tu figura como máscara. Pulsá **Guardar efecto** para agregarlo al proyecto.
@@ -51,7 +51,7 @@ Los motores se comprobaron en este equipo. Para otras ubicaciones: variables `LE
 - HDR PQ/HLG se convierte a SDR: no se preserva HDR. Falta revisar color de teléfonos reales y Dolby Vision.
 - Se probaron HEVC y velocidad variable con muestras sintéticas. Faltan grabaciones reales, videos largos y evaluación de máscara con movimiento.
 - La transcripción necesita revisión; no se promete exactitud literal automática.
-- Las copias de reproducción están en `.cache`; no hay limpieza automática general.
+- Las vistas livianas (`proxy-*.mp4`) están en `.cache` y se conservan las 6 más recientes. Las vistas finales calculadas no tienen limpieza automática general.
 
 ## Código y pruebas
 

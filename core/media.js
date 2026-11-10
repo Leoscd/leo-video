@@ -25,6 +25,12 @@ function run(exe, args, job = {}, onLine = () => {}, options = {}) {
     });
   });
 }
+// Chrome/Edge reproducen H.264 de 8 bits en MP4/MOV sin recodificar. En ese caso la
+// edición usa el original directamente y la importación no espera ninguna conversión.
+function canPlayDirect(m) {
+  return m.codec === 'h264' && !m.hdr && ['yuv420p', 'yuvj420p'].includes(m.pixFmt) && /(^|,)(mp4|mov)(,|$)/.test(m.container || '')
+    && (!m.audio || ['aac', 'mp3'].includes(m.audioCodec)) && Math.max(m.width, m.height) <= 4096;
+}
 async function probe(file, job) {
   const { output } = await run('ffprobe', ['-v', 'error', '-show_format', '-show_streams', '-of', 'json', file], job);
   const p = JSON.parse(output), v = p.streams.find(s => s.codec_type === 'video');
@@ -33,8 +39,12 @@ async function probe(file, job) {
   if (!Number.isFinite(duration) || duration < 0.08) throw new Error('No se pudo determinar la duración.');
   const rotation = Number(v.side_data_list?.find(s => s.rotation !== undefined)?.rotation || v.tags?.rotate || 0);
   const swapped = Math.abs(rotation) % 180 === 90;
-  return { path: path.resolve(file), name: path.basename(file), duration, width: swapped ? v.height : v.width, height: swapped ? v.width : v.height,
-    codec: v.codec_name, fps: v.avg_frame_rate, audio: p.streams.some(s => s.codec_type === 'audio'), hdr: ['smpte2084', 'arib-std-b67'].includes(v.color_transfer), fingerprint: await fingerprint(file) };
+  const a = p.streams.find(s => s.codec_type === 'audio');
+  const info = { path: path.resolve(file), name: path.basename(file), duration, width: swapped ? v.height : v.width, height: swapped ? v.width : v.height,
+    codec: v.codec_name, fps: v.avg_frame_rate, audio: !!a, hdr: ['smpte2084', 'arib-std-b67'].includes(v.color_transfer),
+    pixFmt: v.pix_fmt, container: p.format.format_name, audioCodec: a?.codec_name || null, fingerprint: await fingerprint(file) };
+  info.direct = canPlayDirect(info);
+  return info;
 }
 function progressLine(job, offset = 0, span = 1, duration = 1) {
   return line => {
@@ -116,4 +126,4 @@ async function exportVideo(media, inputProject, destination, job, options = {}) 
     return { path: destination, duration: result.duration, width: result.width, height: result.height, audio: result.audio };
   } finally { await fs.rm(temp, { recursive: true, force: true }); }
 }
-module.exports = { run, probe, makePreview, detectSilences, exportVideo, videoFilter };
+module.exports = { run, probe, canPlayDirect, makePreview, detectSilences, exportVideo, videoFilter };
